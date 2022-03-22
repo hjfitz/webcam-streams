@@ -6,10 +6,15 @@
   "author": "Harry Fitzgerald <harry.fitzgerald@truepill.com>",
   "license": "MIT",
   "devDependencies": {
+    "@types/react": "^17.0.41",
+    "@types/react-dom": "^17.0.14",
+    "buffer": "^6.0.3",
     "parcel": "^2.3.2"
   },
   "dependencies": {
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.4.1"
   }
 }
