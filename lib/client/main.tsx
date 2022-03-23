@@ -1,7 +1,69 @@
 import React, { useEffect, useRef } from "react";
 import { render } from "react-dom";
 
+enum Filters {
+  Invert = "invert",
+  Ukraine = "ukraine",
+}
+
+type FilterFunc = (f: ImageData) => ImageData;
+
+class FilterState {
+  private filterName = Filters.Invert;
+
+  get filter(): FilterFunc {
+    switch (this.filterName) {
+      case Filters.Invert: {
+        return Filter.invert;
+      }
+      case Filters.Ukraine: {
+        return Filter.ukraine;
+      }
+      default: {
+        return Filter.noop;
+      }
+    }
+  }
+
+  setState(newState: Filters) {
+    this.filterName = newState;
+  }
+}
+
+class Filter {
+  static invert(frame: ImageData) {
+    const { data } = frame;
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i + 0];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      data[i] = 255 - red;
+      data[i + 1] = 255 - green;
+      data[i + 2] = 255 - blue;
+    }
+    return frame;
+  }
+
+  static ukraine(frame: ImageData) {
+    const { data } = frame;
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i + 0];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      data[i] = green;
+      data[i + 1] = red;
+      data[i + 2] = 255 - blue;
+    }
+    return frame;
+  }
+
+  static noop(frame: ImageData) {
+    return frame;
+  }
+}
+
 class Processor {
+  private readonly filterState = new FilterState();
   constructor(
     private readonly video: HTMLVideoElement,
     private readonly cvs: HTMLCanvasElement,
@@ -36,23 +98,8 @@ class Processor {
     ctx1.drawImage(this.video, 0, 0, width, height);
 
     const frame = ctx1.getImageData(0, 0, width, height);
-    const length = frame.data.length;
-    const data = frame.data;
-
-    for (let i = 0; i < length; i += 4) {
-      const red = data[i + 0];
-      const green = data[i + 1];
-      const blue = data[i + 2];
-      data[i] = green;
-      data[i + 1] = red;
-      data[i + 2] = 255 - blue;
-      //if (green > 100 && red > 100 && blue < 43) {
-      //if (green > 170 && red > 170 && blue > 170) {
-      //data[i + 3] = 0;
-      // data[i] = 0;
-      //}
-    }
-    ctx2.putImageData(frame, 0, 0);
+    const newFrame = this.filterState.filter(frame);
+    ctx2.putImageData(newFrame, 0, 0);
   }
 }
 
